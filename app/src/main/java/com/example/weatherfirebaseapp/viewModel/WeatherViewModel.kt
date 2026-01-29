@@ -1,17 +1,20 @@
 package com.example.weatherfirebaseapp.viewModel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.weatherfirebaseapp.data.local.CacheManager
 import com.example.weatherfirebaseapp.data.repository.WeatherRepository
-import com.example.weatherfirebaseapp.domain.model.Weather
 import com.example.weatherfirebaseapp.domain.model.DailyForecast
+import com.example.weatherfirebaseapp.domain.model.Weather
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class WeatherViewModel : ViewModel() {
+class WeatherViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = WeatherRepository()
+    private val cache = CacheManager(application)
 
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState
@@ -38,10 +41,20 @@ class WeatherViewModel : ViewModel() {
                     windSpeed = dto.currentWeather?.windspeed ?: 0.0,
                     forecast = forecastList
                 )
+                cache.saveWeather(weather)
 
                 _uiState.value = WeatherUiState.Success(weather)
+
             } catch (e: Exception) {
-                _uiState.value = WeatherUiState.Error("Failed to load weather")
+                val cached = cache.loadWeather()
+                if (cached != null) {
+                    _uiState.value = WeatherUiState.Success(
+                        weather = cached,
+                        isOffline = true
+                    )
+                } else {
+                    _uiState.value = WeatherUiState.Error("Failed to load weather")
+                }
             }
         }
     }
@@ -49,6 +62,11 @@ class WeatherViewModel : ViewModel() {
 
 sealed class WeatherUiState {
     object Loading : WeatherUiState()
-    data class Success(val weather: Weather) : WeatherUiState()
+
+    data class Success(
+        val weather: Weather,
+        val isOffline: Boolean = false
+    ) : WeatherUiState()
+
     data class Error(val message: String) : WeatherUiState()
 }

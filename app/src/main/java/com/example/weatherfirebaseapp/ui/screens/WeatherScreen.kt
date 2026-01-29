@@ -24,7 +24,6 @@ fun WeatherScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // 🔍 Search
         OutlinedTextField(
             value = city,
             onValueChange = { city = it },
@@ -47,7 +46,6 @@ fun WeatherScreen(
 
         Divider()
 
-        // 🌦 Result
         when (state) {
             is WeatherUiState.Loading -> {
                 CircularProgressIndicator(
@@ -63,11 +61,20 @@ fun WeatherScreen(
             }
 
             is WeatherUiState.Success -> {
-                val weather = (state as WeatherUiState.Success).weather
+                val successState = state as WeatherUiState.Success
+                val weather = successState.weather
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+
+                    if (successState.isOffline) {
+                        Text(
+                            text = "Offline data",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
                     Text("Temperature: ${weather.temperature}°C")
                     Text("Wind: ${weather.windSpeed} km/h")
 
@@ -81,6 +88,7 @@ fun WeatherScreen(
                     }
                 }
             }
+
         }
     }
 }
