@@ -15,6 +15,7 @@ class CacheManager(private val context: Context) {
         private val TEMP = doublePreferencesKey("temp")
         private val WIND = doublePreferencesKey("wind")
         private val FORECAST = stringPreferencesKey("forecast")
+        private val LAST_UPDATED=stringPreferencesKey("last_updated")
     }
 
     suspend fun saveWeather(weather: Weather) {
@@ -26,6 +27,7 @@ class CacheManager(private val context: Context) {
             prefs[TEMP] = weather.temperature
             prefs[WIND] = weather.windSpeed
             prefs[FORECAST] = forecastString
+            prefs[LAST_UPDATED]=weather.lastUpdate
         }
     }
 
@@ -35,6 +37,7 @@ class CacheManager(private val context: Context) {
         val temp = prefs[TEMP] ?: return null
         val wind = prefs[WIND] ?: return null
         val forecastString = prefs[FORECAST] ?: return null
+        val timeStr = prefs[LAST_UPDATED] ?: "Unknown"
 
         val forecast = forecastString.split(";").map {
             val (max, min) = it.split(",")
@@ -44,7 +47,8 @@ class CacheManager(private val context: Context) {
         return Weather(
             temperature = temp,
             windSpeed = wind,
-            forecast = forecast
+            forecast = forecast,
+            lastUpdate = timeStr
         )
     }
 }

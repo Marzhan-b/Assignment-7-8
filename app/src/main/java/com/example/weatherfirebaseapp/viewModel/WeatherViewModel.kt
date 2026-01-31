@@ -10,6 +10,8 @@ import com.example.weatherfirebaseapp.domain.model.Weather
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -17,7 +19,14 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val cache = CacheManager(application)
 
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
+    private val _isCelsius = MutableStateFlow(true)
+
+    val isCelsius: StateFlow<Boolean> = _isCelsius
     val uiState: StateFlow<WeatherUiState> = _uiState
+
+    fun toggleUnits() {
+        _isCelsius.value = !_isCelsius.value
+    }
 
     fun loadWeather(latitude: Double, longitude: Double) {
         viewModelScope.launch {
@@ -36,13 +45,16 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                         )
                     } ?: emptyList()
 
+                val currentTime = SimpleDateFormat("HH:mm, dd MMM", Locale.getDefault()).format(Date())
+
                 val weather = Weather(
                     temperature = dto.currentWeather?.temperature ?: 0.0,
                     windSpeed = dto.currentWeather?.windspeed ?: 0.0,
-                    forecast = forecastList
+                    forecast = forecastList,
+                    lastUpdate = currentTime
                 )
-                cache.saveWeather(weather)
 
+                cache.saveWeather(weather)
                 _uiState.value = WeatherUiState.Success(weather)
 
             } catch (e: Exception) {
@@ -53,7 +65,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                         isOffline = true
                     )
                 } else {
-                    _uiState.value = WeatherUiState.Error("Failed to load weather")
+                    _uiState.value = WeatherUiState.Error("Failed to load weather: ${e.message}")
                 }
             }
         }
