@@ -8,7 +8,6 @@ import com.example.weatherfirebaseapp.domain.model.Weather
 import kotlinx.coroutines.flow.first
 
 private val Context.dataStore by preferencesDataStore(name = "weather_cache")
-
 class CacheManager(private val context: Context) {
 
     companion object {

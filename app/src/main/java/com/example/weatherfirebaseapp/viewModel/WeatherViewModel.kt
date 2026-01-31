@@ -17,10 +17,8 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
     private val repository = WeatherRepository()
     private val cache = CacheManager(application)
-
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     private val _isCelsius = MutableStateFlow(true)
-
     val isCelsius: StateFlow<Boolean> = _isCelsius
     val uiState: StateFlow<WeatherUiState> = _uiState
 

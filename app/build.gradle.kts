@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
+
 
 android {
     namespace = "com.example.weatherfirebaseapp"
@@ -62,6 +64,12 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+
+
 
 
 }
