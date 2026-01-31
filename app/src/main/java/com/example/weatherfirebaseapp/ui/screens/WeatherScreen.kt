@@ -10,11 +10,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherfirebaseapp.viewModel.WeatherUiState
 import com.example.weatherfirebaseapp.viewModel.WeatherViewModel
-import com.example.weatherfirebaseapp.ui.theme.Pink40
 @Composable
 fun WeatherScreen(
     viewModel: WeatherViewModel = viewModel()
 ) {
+    var inputError by remember { mutableStateOf<String?>(null) }
     var city by remember { mutableStateOf("") }
     val state by viewModel.uiState.collectAsState()
     val isCelsius by viewModel.isCelsius.collectAsState()
@@ -43,27 +43,27 @@ fun WeatherScreen(
 
         OutlinedTextField(
             value = city,
-            onValueChange = { city = it },
+            onValueChange = {
+                city = it
+                inputError = null
+            },
             label = { Text("Enter City Name") },
-            singleLine = true,
+            isError = inputError != null,
             modifier = Modifier.fillMaxWidth()
         )
 
-        var inputError by remember { mutableStateOf<String?>(null) }
-
         Button(
             onClick = {
-                inputError = null
                 val trimmedCity = city.trim()
-
                 if (trimmedCity.isBlank()) {
                     inputError = "Please enter a city name"
                 } else {
                     val coords = getCoordinatesForCity(trimmedCity)
                     if (coords != null) {
+                        inputError = null
                         viewModel.loadWeather(coords.first, coords.second)
                     } else {
-                        inputError = "City not found in our database"
+                        inputError = "City '$trimmedCity' not found in database"
                     }
                 }
             },
@@ -75,8 +75,8 @@ fun WeatherScreen(
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
 
