@@ -15,4 +15,5 @@ class FavoritesRepository(private val firebaseService: FirebaseService) {
     fun deleteFavorite(id: String) {
         firebaseService.deleteFavorite(id)
     }
+
 }
