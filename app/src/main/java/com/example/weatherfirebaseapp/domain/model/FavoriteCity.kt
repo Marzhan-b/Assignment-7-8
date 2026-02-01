@@ -1,4 +1,7 @@
 package com.example.weatherfirebaseapp.domain.model
 
-class FavoriteCity {
-}
+data class FavoriteCity(
+    val id: String = "",
+    val name: String = "",
+    val note: String = ""
+)
