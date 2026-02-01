@@ -3,18 +3,18 @@ package com.example.weatherfirebaseapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.weatherfirebaseapp.data.firebase.FirebaseService
 import com.example.weatherfirebaseapp.data.repository.FavoritesRepository
+import com.example.weatherfirebaseapp.navigation.Screen
 import com.example.weatherfirebaseapp.ui.screens.FavoritesScreen
-import com.example.weatherfirebaseapp.ui.screens.SearchScreen
+import com.example.weatherfirebaseapp.ui.screens.WeatherScreen
 import com.example.weatherfirebaseapp.ui.theme.WeatherFirebaseAppTheme
 import com.example.weatherfirebaseapp.ui.viewmodel.FavoritesViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -39,15 +39,31 @@ class MainActivity : ComponentActivity() {
                     }
                 )
 
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    Scaffold { paddingValues ->
-                        Column(modifier = Modifier.padding(paddingValues)) {
-                            SearchScreen(viewModel = favoritesViewModel)
+                val navController = rememberNavController()
 
-                            HorizontalDivider(thickness = 2.dp)
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.Favorites.route
+                ) {
 
-                            FavoritesScreen(viewModel = favoritesViewModel)
-                        }
+                    composable(Screen.Favorites.route) {
+                        FavoritesScreen(
+                            viewModel = favoritesViewModel,
+                            onCityClick = { city ->
+                                navController.navigate(Screen.Weather.create(city))
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = Screen.Weather.route,
+                        arguments = listOf(navArgument("city") {
+                            type = NavType.StringType
+                        })
+                    ) { backStack ->
+                        val city =
+                            backStack.arguments?.getString("city") ?: ""
+                        WeatherScreen(cityName = city)
                     }
                 }
             }

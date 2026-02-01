@@ -47,6 +47,10 @@ class FirebaseService {
         userRef.addValueEventListener(listener)
         awaitClose { userRef.removeEventListener(listener) }
     }
+    fun updateFavoriteNote(favoriteId: String, newNote: String) {
+        val uid = getCurrentUserId() ?: return
+        db.child("favorites").child(uid).child(favoriteId).child("note").setValue(newNote)
+    }
     fun deleteFavorite(favoriteId: String) {
         val uid = getCurrentUserId() ?: return
         db.child("favorites").child(uid).child(favoriteId).removeValue()

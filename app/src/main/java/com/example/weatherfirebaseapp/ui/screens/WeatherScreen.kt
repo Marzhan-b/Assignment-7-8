@@ -10,14 +10,33 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherfirebaseapp.viewModel.WeatherUiState
 import com.example.weatherfirebaseapp.viewModel.WeatherViewModel
+
 @Composable
 fun WeatherScreen(
+    cityName: String = "",
     viewModel: WeatherViewModel = viewModel()
 ) {
     var inputError by remember { mutableStateOf<String?>(null) }
     var city by remember { mutableStateOf("") }
+
     val state by viewModel.uiState.collectAsState()
     val isCelsius by viewModel.isCelsius.collectAsState()
+    LaunchedEffect(Unit) {
+        viewModel.loadLastCityWeather()
+    }
+
+    LaunchedEffect(cityName) {
+        if (cityName.isNotBlank()) {
+            city = cityName
+            val coords = getCoordinatesForCity(cityName)
+            if (coords != null) {
+                inputError = null
+                viewModel.loadWeather(cityName, coords.first, coords.second)
+            } else {
+                inputError = "City '$cityName' not found in database"
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -30,7 +49,7 @@ fun WeatherScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Weather Settings", style = MaterialTheme.typography.titleMedium)
+            Text("Weather Settings", style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("°C")
                 Switch(
@@ -61,7 +80,7 @@ fun WeatherScreen(
                     val coords = getCoordinatesForCity(trimmedCity)
                     if (coords != null) {
                         inputError = null
-                        viewModel.loadWeather(coords.first, coords.second)
+                        viewModel.loadWeather(trimmedCity, coords.first, coords.second)
                     } else {
                         inputError = "City '$trimmedCity' not found in database"
                     }
@@ -71,16 +90,17 @@ fun WeatherScreen(
         ) {
             Text("Search")
         }
+
         inputError?.let {
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp)
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
         HorizontalDivider()
+
         when (state) {
             is WeatherUiState.Loading -> {
                 CircularProgressIndicator(
@@ -92,50 +112,46 @@ fun WeatherScreen(
                 Text(
                     text = (state as WeatherUiState.Error).message,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
             is WeatherUiState.Success -> {
-                val successState = state as WeatherUiState.Success
-                val weather = successState.weather
-
-                val displayTemp = if (isCelsius) weather.temperature else (weather.temperature * 9/5) + 32
+                val success = state as WeatherUiState.Success
+                val weather = success.weather
+                val temp = if (isCelsius) weather.temperature else weather.temperature * 9 / 5 + 32
                 val unit = if (isCelsius) "°C" else "°F"
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (successState.isOffline) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                    if (success.isOffline) {
                         Surface(
                             color = MaterialTheme.colorScheme.errorContainer,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.small
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = "Viewing cached data (Offline)",
-                                color = MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.padding(8.dp),
                                 textAlign = TextAlign.Center
                             )
                         }
                     }
 
-                    Text("Current Temperature: ${String.format("%.1f", displayTemp)} $unit", style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        "Current Temperature: ${String.format("%.1f", temp)} $unit",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
                     Text("Wind Speed: ${weather.windSpeed} km/h")
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text("3-Day Forecast:", style = MaterialTheme.typography.titleMedium)
 
                     weather.forecast.forEachIndexed { index, day ->
-                        val maxT = if (isCelsius) day.maxTemp else (day.maxTemp * 9/5) + 32
-                        val minT = if (isCelsius) day.minTemp else (day.minTemp * 9/5) + 32
+                        val maxT = if (isCelsius) day.maxTemp else day.maxTemp * 9 / 5 + 32
+                        val minT = if (isCelsius) day.minTemp else day.minTemp * 9 / 5 + 32
 
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                        ) {
+                        Card(modifier = Modifier.fillMaxWidth()) {
                             Text(
                                 text = "Day ${index + 1}: Max ${String.format("%.1f", maxT)}$unit / Min ${String.format("%.1f", minT)}$unit",
                                 modifier = Modifier.padding(12.dp)
@@ -148,8 +164,8 @@ fun WeatherScreen(
     }
 }
 
-private fun getCoordinatesForCity(city: String): Pair<Double, Double>? {
-    return when (city.trim().lowercase()) {
+private fun getCoordinatesForCity(city: String): Pair<Double, Double>? =
+    when (city.trim().lowercase()) {
         "astana" -> 51.1694 to 71.4491
         "almaty" -> 43.2220 to 76.8512
         "shymkent" -> 42.3417 to 69.5901
@@ -158,4 +174,3 @@ private fun getCoordinatesForCity(city: String): Pair<Double, Double>? {
         "new york" -> 40.7128 to -74.0060
         else -> null
     }
-}

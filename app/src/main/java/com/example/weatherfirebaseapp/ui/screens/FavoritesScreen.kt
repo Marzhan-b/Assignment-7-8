@@ -1,5 +1,6 @@
 package com.example.weatherfirebaseapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,7 +17,10 @@ import com.example.weatherfirebaseapp.data.firebase.FavoriteDto
 import com.example.weatherfirebaseapp.ui.viewmodel.FavoritesViewModel
 
 @Composable
-fun FavoritesScreen(viewModel: FavoritesViewModel) {
+fun FavoritesScreen(
+    viewModel: FavoritesViewModel,
+    onCityClick: (String) -> Unit
+) {
     val favorites by viewModel.favorites.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -35,7 +39,8 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
                 items(favorites) { city ->
                     FavoriteCityItem(
                         city = city,
-                        onDelete = { viewModel.deleteFavorite(city.id ?: "") }
+                        onDelete = { viewModel.deleteFavorite(city.id ?: "") },
+                        onCityClick = onCityClick
                     )
                 }
             }
@@ -44,25 +49,52 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
 }
 
 @Composable
-fun FavoriteCityItem(city: FavoriteDto, onDelete: () -> Unit) {
+fun FavoriteCityItem(
+    city: FavoriteDto,
+    onDelete: () -> Unit,
+    onCityClick: (String) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = city.cityName ?: "Unknown", style = MaterialTheme.typography.titleLarge)
-                if (!city.note.isNullOrBlank()) {
-                    Text(text = city.note, style = MaterialTheme.typography.bodyMedium)
-                }
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Text(
+                text = city.cityName ?: "Unknown",
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            if (!city.note.isNullOrBlank()) {
+                Text(
+                    text = city.note,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
-            IconButton(onClick = onDelete) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete City")
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Button(
+                    onClick = {
+                        onCityClick(city.cityName ?: "")
+                    }
+                ) {
+                    Text("Show weather")
+                }
+
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete City"
+                    )
+                }
             }
         }
     }

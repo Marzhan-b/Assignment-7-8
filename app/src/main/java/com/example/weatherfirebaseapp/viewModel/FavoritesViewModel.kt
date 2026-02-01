@@ -23,6 +23,11 @@ class FavoritesViewModel(private val repository: FavoritesRepository) : ViewMode
             repository.addFavorite(cityName, note)
         }
     }
+    fun updateFavoriteNote(id: String, newNote: String) {
+        viewModelScope.launch {
+            repository.updateFavoriteNote(id, newNote)
+        }
+    }
     fun deleteFavorite(id: String) {
         viewModelScope.launch {
             repository.deleteFavorite(id)

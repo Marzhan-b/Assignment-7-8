@@ -12,8 +12,12 @@ class FavoritesRepository(private val firebaseService: FirebaseService) {
         firebaseService.saveFavoriteCity(cityName, note)
     }
 
+    fun updateFavoriteNote(id: String, newNote: String) {
+        firebaseService.updateFavoriteNote(id, newNote)
+    }
+
+
     fun deleteFavorite(id: String) {
         firebaseService.deleteFavorite(id)
     }
-
 }

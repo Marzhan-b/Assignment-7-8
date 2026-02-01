@@ -8,13 +8,15 @@ import com.example.weatherfirebaseapp.domain.model.Weather
 import kotlinx.coroutines.flow.first
 
 private val Context.dataStore by preferencesDataStore(name = "weather_cache")
+
 class CacheManager(private val context: Context) {
 
     companion object {
         private val TEMP = doublePreferencesKey("temp")
         private val WIND = doublePreferencesKey("wind")
         private val FORECAST = stringPreferencesKey("forecast")
-        private val LAST_UPDATED=stringPreferencesKey("last_updated")
+        private val LAST_UPDATED = stringPreferencesKey("last_updated")
+        private val CITY = stringPreferencesKey("last_city")
     }
 
     suspend fun saveWeather(weather: Weather) {
@@ -26,8 +28,18 @@ class CacheManager(private val context: Context) {
             prefs[TEMP] = weather.temperature
             prefs[WIND] = weather.windSpeed
             prefs[FORECAST] = forecastString
-            prefs[LAST_UPDATED]=weather.lastUpdate
+            prefs[LAST_UPDATED] = weather.lastUpdate
         }
+    }
+
+    suspend fun saveCity(city: String) {
+        context.dataStore.edit {
+            it[CITY] = city
+        }
+    }
+
+    suspend fun loadCity(): String? {
+        return context.dataStore.data.first()[CITY]
     }
 
     suspend fun loadWeather(): Weather? {
