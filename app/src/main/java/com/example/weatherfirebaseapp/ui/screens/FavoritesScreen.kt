@@ -15,6 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.weatherfirebaseapp.data.firebase.FavoriteDto
 import com.example.weatherfirebaseapp.ui.viewmodel.FavoritesViewModel
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+
+
 
 @Composable
 fun FavoritesScreen(
@@ -40,7 +45,8 @@ fun FavoritesScreen(
                     FavoriteCityItem(
                         city = city,
                         onDelete = { viewModel.deleteFavorite(city.id ?: "") },
-                        onCityClick = onCityClick
+                        onCityClick = onCityClick,
+                        viewModel = viewModel
                     )
                 }
             }
@@ -52,8 +58,12 @@ fun FavoritesScreen(
 fun FavoriteCityItem(
     city: FavoriteDto,
     onDelete: () -> Unit,
-    onCityClick: (String) -> Unit
+    onCityClick: (String) -> Unit,
+    viewModel: FavoritesViewModel
 ) {
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editedNote by remember { mutableStateOf(city.note ?: "") }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,12 +91,25 @@ fun FavoriteCityItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Button(
-                    onClick = {
-                        onCityClick(city.cityName ?: "")
+                Row {
+                    Button(
+                        onClick = {
+                            onCityClick(city.cityName ?: "")
+                        }
+                    ) {
+                        Text("Weather")
                     }
-                ) {
-                    Text("Show weather")
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            editedNote = city.note ?: ""
+                            showEditDialog = true
+                        }
+                    ) {
+                        Text("Edit note")
+                    }
                 }
 
                 IconButton(onClick = onDelete) {
@@ -97,5 +120,36 @@ fun FavoriteCityItem(
                 }
             }
         }
+    }
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Edit note") },
+            text = {
+                OutlinedTextField(
+                    value = editedNote,
+                    onValueChange = { editedNote = it },
+                    label = { Text("Note") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        city.id?.let {
+                            viewModel.updateFavoriteNote(it, editedNote)
+                        }
+                        showEditDialog = false
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
