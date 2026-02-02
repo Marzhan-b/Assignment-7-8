@@ -61,15 +61,28 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                 cache.saveWeather(weather)
                 cache.saveCity(cityName)
 
-                _uiState.value = WeatherUiState.Success(weather)
+                _uiState.value = WeatherUiState.Success(
+                    cityName = cityName,
+                    weather = weather
+                )
+
             } catch (e: Exception) {
-                val cached = cache.loadWeather()
-                if (cached != null) {
-                    _uiState.value = WeatherUiState.Success(cached, true)
+                val cachedWeather = cache.loadWeather()
+                val cachedCity = cache.loadCity()
+
+                if (cachedWeather != null && cachedCity != null) {
+                    _uiState.value = WeatherUiState.Success(
+                        cityName = cachedCity,
+                        weather = cachedWeather,
+                        isOffline = true
+                    )
                 } else {
-                    _uiState.value = WeatherUiState.Error("Failed to load weather")
+                    _uiState.value = WeatherUiState.Error(
+                        message = "Failed to load weather"
+                    )
                 }
             }
+
         }
     }
 }
