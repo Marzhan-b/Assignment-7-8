@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.weatherfirebaseapp.data.firebase.FavoriteDto
 import com.example.weatherfirebaseapp.ui.viewmodel.FavoritesViewModel
+import com.example.weatherfirebaseapp.viewModel.getWeatherIcon
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
@@ -67,60 +69,66 @@ fun FavoriteCityItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(vertical = 6.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(20.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-            Text(
-                text = city.cityName ?: "Unknown",
-                style = MaterialTheme.typography.titleLarge
+            // 🌤 Weather icon
+            Icon(
+                imageVector = getWeatherIcon(city.note ?: ""),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(48.dp)
             )
 
-            if (!city.note.isNullOrBlank()) {
-                Text(
-                    text = city.note,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
+            Spacer(Modifier.width(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
+
+                Text(
+                    text = city.cityName ?: "Unknown",
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                if (!city.note.isNullOrBlank()) {
+                    Text(
+                        text = city.note,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
 
                 Row {
-                    Button(
-                        onClick = {
-                            onCityClick(city.cityName ?: "")
-                        }
-                    ) {
+
+                    Button(onClick = {
+                        onCityClick(city.cityName ?: "")
+                    }) {
                         Text("Weather")
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(Modifier.width(8.dp))
 
-                    OutlinedButton(
-                        onClick = {
-                            editedNote = city.note ?: ""
-                            showEditDialog = true
-                        }
-                    ) {
-                        Text("Edit note")
+                    OutlinedButton(onClick = {
+                        editedNote = city.note ?: ""
+                        showEditDialog = true
+                    }) {
+                        Text("Edit")
                     }
                 }
+            }
 
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete City"
-                    )
-                }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = null)
             }
         }
     }
+
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -128,22 +136,16 @@ fun FavoriteCityItem(
             text = {
                 OutlinedTextField(
                     value = editedNote,
-                    onValueChange = { editedNote = it },
-                    label = { Text("Note") },
-                    singleLine = true
+                    onValueChange = { editedNote = it }
                 )
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        city.id?.let {
-                            viewModel.updateFavoriteNote(it, editedNote)
-                        }
-                        showEditDialog = false
+                TextButton(onClick = {
+                    city.id?.let {
+                        viewModel.updateFavoriteNote(it, editedNote)
                     }
-                ) {
-                    Text("Save")
-                }
+                    showEditDialog = false
+                }) { Text("Save") }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
@@ -153,3 +155,4 @@ fun FavoriteCityItem(
         )
     }
 }
+
