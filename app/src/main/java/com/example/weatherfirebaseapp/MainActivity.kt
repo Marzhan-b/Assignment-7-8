@@ -122,7 +122,7 @@ fun WeatherMainScreen(viewModel: FavoritesViewModel) {
         Spacer(Modifier.height(20.dp))
 
         Text(
-            "⭐ Favorites (real-time)",
+            " Favorites (real-time)",
             style = MaterialTheme.typography.titleLarge,
             color = Color.White
         )
